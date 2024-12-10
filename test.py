@@ -32,6 +32,7 @@ def test_model():
     with torch.no_grad():
         for data, target in test_loader:
             data, target = data.to(device), target.to(device)
+            print(data.shape)
             outputs = model(data)
             _, predicted = torch.max(outputs.data, 1)
 
