@@ -1,0 +1,12 @@
+cmake ../llvm -G Ninja \
+    -DCMAKE_BUILD_TYPE=Debug \
+    -DCMAKE_C_COMPILER=clang-18 \
+    -DCMAKE_CXX_COMPILER=clang++-18 \
+    -DCMAKE_CUDA_HOST_COMPILER=clang++-18 \
+    -DLLVM_USE_LINKER=lld \
+    -DLLVM_TARGETS_TO_BUILD="host;NVPTX" \
+    -DLLVM_ENABLE_PROJECTS="mlir" \
+    -DBUILD_SHARED_LIBS=ON \
+    -DCMAKE_INSTALL_PREFIX=install \
+    -DMLIR_ENABLE_CUDA_RUNNER=ON \
+    -DCMAKE_INSTALL_PREFIX=install
