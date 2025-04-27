@@ -30,7 +30,11 @@ include_directories(${LLVM_INCLUDE_DIRS})
 include_directories(${MLIR_INCLUDE_DIRS})
 
 # Add simple-compiler executable
-add_llvm_executable(simple-compiler main.cpp)
+add_llvm_executable(simple-compiler
+    main.cpp
+    Transforms/TransposeFolder.cpp
+    TransposeFolderPass.cpp
+)
 llvm_update_compile_flags(simple-compiler)
 target_link_libraries(simple-compiler PRIVATE ${LIBS})
 mlir_check_all_link_libraries(simple-compiler)
