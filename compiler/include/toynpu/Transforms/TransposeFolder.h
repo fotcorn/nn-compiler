@@ -13,15 +13,15 @@ class DenseResourceElementsAttr;
 class PatternRewriter;
 } // namespace mlir
 
-namespace nn_compiler {
+namespace toynpu {
 
 // Forward declaration
 mlir::DenseResourceElementsAttr transpose(mlir::ElementsAttr attr,
-                                  mlir::ShapedType inputType,
-                                  mlir::ShapedType outputType,
-                                  llvm::ArrayRef<int64_t> permValues);
+                                          mlir::ShapedType inputType,
+                                          mlir::ShapedType outputType,
+                                          llvm::ArrayRef<int64_t> permValues);
 
-// Declare the pattern within the nn_compiler namespace
+// Declare the pattern within the toynpu namespace
 struct LinalgFoldConstantTranspose
     : public mlir::OpRewritePattern<mlir::linalg::TransposeOp> {
   using OpRewritePattern::OpRewritePattern;
@@ -31,6 +31,6 @@ struct LinalgFoldConstantTranspose
                   mlir::PatternRewriter &rewriter) const override;
 };
 
-} // namespace nn_compiler
+} // namespace toynpu
 
-#endif // COMPILER_TRANSFORMS_TRANSPOSEFOLDER_H 
+#endif // COMPILER_TRANSFORMS_TRANSPOSEFOLDER_H

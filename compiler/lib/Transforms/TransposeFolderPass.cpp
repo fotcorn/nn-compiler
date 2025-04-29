@@ -1,5 +1,5 @@
-#include "TransposeFolderPass.h"
-#include "Transforms/TransposeFolder.h"
+#include "toynpu/Transforms/TransposeFolderPass.h"
+#include "toynpu/Transforms/TransposeFolder.h"
 
 #include "mlir/Dialect/Func/IR/FuncOps.h"
 #include "mlir/Dialect/Linalg/IR/Linalg.h"
@@ -7,7 +7,7 @@
 #include "mlir/Pass/Pass.h"
 #include "mlir/Transforms/GreedyPatternRewriteDriver.h"
 
-namespace nn_compiler {
+namespace toynpu {
 
 namespace {
 // Define the pass struct inheriting from MLIR pass infrastructure
@@ -20,14 +20,14 @@ struct TransposeFolderPass
   llvm::StringRef getArgument() const final { return "transpose-folder"; }
   // Return a brief description of the pass
   llvm::StringRef getDescription() const final {
-    return "Folds constant transpose operations using nn_compiler patterns";
+    return "Folds constant transpose operations using toynpu patterns";
   }
 
   // The core logic of the pass
   void runOnOperation() override {
     mlir::RewritePatternSet patterns(&getContext());
-    // Add the pattern defined in nn_compiler namespace
-    patterns.add<nn_compiler::LinalgFoldConstantTranspose>(&getContext());
+    // Add the pattern defined in toynpu namespace
+    patterns.add<toynpu::LinalgFoldConstantTranspose>(&getContext());
 
     // Apply the patterns greedily
     if (failed(mlir::applyPatternsAndFoldGreedily(getOperation(),
@@ -48,4 +48,4 @@ void registerTransposeFolderPass() {
   mlir::PassRegistration<TransposeFolderPass>();
 }
 
-} // namespace nn_compiler
+} // namespace toynpu

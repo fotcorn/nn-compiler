@@ -1,4 +1,4 @@
-#include "TransposeFolder.h"
+#include "toynpu/Transforms/TransposeFolder.h"
 
 #include "mlir/Dialect/Arith/IR/Arith.h"
 #include "mlir/Dialect/Utils/IndexingUtils.h"
@@ -14,7 +14,7 @@
 #include <optional>
 #include <type_traits> // For std::decay_t
 
-namespace nn_compiler {
+namespace toynpu {
 
 template <typename RangeType>
 mlir::DenseResourceElementsAttr
@@ -123,4 +123,4 @@ mlir::LogicalResult LinalgFoldConstantTranspose::matchAndRewrite(
   return mlir::success();
 }
 
-} // namespace nn_compiler
+} // namespace toynpu

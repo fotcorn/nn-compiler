@@ -28,13 +28,14 @@ set(LIBS
 
 include_directories(${LLVM_INCLUDE_DIRS})
 include_directories(${MLIR_INCLUDE_DIRS})
+include_directories(include)
 
 # Add simple-compiler executable
-add_llvm_executable(simple-compiler
-    main.cpp
-    Transforms/TransposeFolder.cpp
-    TransposeFolderPass.cpp
+add_llvm_executable(toynpu-opt
+    lib/Tools/toynpu-opt.cpp
+    lib/Transforms/TransposeFolder.cpp
+    lib/Transforms/TransposeFolderPass.cpp
 )
-llvm_update_compile_flags(simple-compiler)
-target_link_libraries(simple-compiler PRIVATE ${LIBS})
-mlir_check_all_link_libraries(simple-compiler)
+llvm_update_compile_flags(toynpu-opt)
+target_link_libraries(toynpu-opt PRIVATE ${LIBS})
+mlir_check_all_link_libraries(toynpu-opt)
