@@ -1,11 +1,5 @@
-//===-- Passes.td - Transform pass definition file ---------*- tablegen -*-===//
-//
-// Part of the ToyNPU project
-//
-//===----------------------------------------------------------------------===//
-
-#ifndef TOYNPU_TRANSFORMS_PASSES
-#define TOYNPU_TRANSFORMS_PASSES
+#ifndef TOYNPU_PASSES
+#define TOYNPU_PASSES
 
 include "mlir/Pass/PassBase.td"
 
@@ -16,4 +10,4 @@ def TransposeFolderPass : Pass<"transpose-folder", "mlir::func::FuncOp"> {
   ];
 }
 
-#endif // TOYNPU_TRANSFORMS_PASSES 
+#endif // TOYNPU_PASSES

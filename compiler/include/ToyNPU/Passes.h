@@ -1,15 +1,5 @@
-//===- Passes.h - ToyNPU Transform Pass Entrypoints ----------*- C++ -*-===//
-//
-// Part of the ToyNPU project
-//
-//===----------------------------------------------------------------------===//
-//
-// This header file defines prototypes for ToyNPU transform passes.
-//
-//===----------------------------------------------------------------------===//
-
-#ifndef TOYNPU_TRANSFORMS_PASSES_H
-#define TOYNPU_TRANSFORMS_PASSES_H
+#ifndef TOYNPU_PASSES_H
+#define TOYNPU_PASSES_H
 
 #include "mlir/Pass/Pass.h"
 
@@ -21,4 +11,4 @@ namespace toynpu {
 #include "ToyNPU/Passes.h.inc"
 } // namespace toynpu
 
-#endif // TOYNPU_TRANSFORMS_PASSES_H
+#endif // TOYNPU_PASSES_H
