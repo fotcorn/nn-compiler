@@ -16,41 +16,14 @@
 
 namespace nn_compiler {
 
-// --- Implementation copied from original TransposeFolder.cpp --- 
-template <typename T>
-std::optional<llvm::ArrayRef<T>>
-tryGetDenseResourceValues(mlir::ElementsAttr attr) {
-  if (auto denseResource =
-          mlir::dyn_cast<mlir::DenseResourceElementsAttr>(attr)) {
-    // Check that the resource memory blob exists
-    mlir::AsmResourceBlob *blob = denseResource.getRawHandle().getBlob();
-    if (!blob)
-      return std::nullopt;
-
-    // Check that the data are in a valid form
-    bool isSplat = false;
-    if (!mlir::DenseElementsAttr::isValidRawBuffer(attr.getShapedType(),
-                                                   blob->getData(), isSplat)) {
-      return std::nullopt;
-    }
-
-    return blob->getDataAs<T>();
-  }
-
-  return std::nullopt;
-}
-
 template <typename RangeType>
-mlir::DenseElementsAttr
+mlir::DenseResourceElementsAttr
 transposeType(const RangeType &data, mlir::ShapedType inputType,
-              mlir::ShapedType outputType, llvm::ArrayRef<int64_t> permValues) {
+              mlir::ShapedType outputType, llvm::ArrayRef<int64_t> permValues,
+              llvm::StringRef newBlobName) {
   using ElementType = std::decay_t<decltype(*std::begin(data))>;
 
   assert(inputType.getElementType() == outputType.getElementType());
-
-  if (inputType.getNumElements() == 0)
-    return mlir::DenseElementsAttr::get(outputType,
-                                        llvm::ArrayRef<ElementType>{});
 
   auto inputShape = inputType.getShape();
 
@@ -82,37 +55,28 @@ transposeType(const RangeType &data, mlir::ShapedType inputType,
     outputValues[dstLinearIndex] = it.value();
   }
 
-  return mlir::DenseElementsAttr::get(
-      outputType, llvm::ArrayRef<ElementType>(outputValues));
+  mlir::MLIRContext *ctx = outputType.getContext();
+  auto resourceManager =
+      mlir::DenseResourceElementsHandle::getManagerInterface(ctx);
+
+  auto blob = mlir::UnmanagedAsmResourceBlob::allocateInferAlign(
+      llvm::ArrayRef(outputValues));
+  return mlir::DenseResourceElementsAttr::get(outputType, newBlobName,
+                                              std::move(blob));
 }
 
-mlir::DenseElementsAttr transpose(mlir::ElementsAttr attr,
-                                  mlir::ShapedType inputType,
-                                  mlir::ShapedType outputType,
-                                  llvm::ArrayRef<int64_t> permValues) {
-  if (mlir::isa<mlir::DenseResourceElementsAttr>(attr)) {
-    auto elementTy = attr.getElementType();
-    // TODO: Add support for other types (int, other float types)
-    if (elementTy.isF32()) {
-        auto data = tryGetDenseResourceValues<float>(attr);
-        if (data)
-            return transposeType(*data, inputType, outputType, permValues);
-    }
-  }
-  // TODO: Handle DenseElementsAttr if needed
-
-  return nullptr;
-}
-
-// --- Implementation of the pattern's matchAndRewrite --- 
 mlir::LogicalResult LinalgFoldConstantTranspose::matchAndRewrite(
     mlir::linalg::TransposeOp op, mlir::PatternRewriter &rewriter) const {
 
-  // Get output type
   auto outputType = mlir::cast<mlir::ShapedType>(op.getType(0));
 
-  // Check element type compatibility (adjust as needed)
-  if (!outputType.getElementType().isIntOrIndexOrFloat())
+  if (!outputType.getElementType().isF32())
+    return mlir::failure();
+
+  // Get input type
+  auto inputType = mlir::cast<mlir::ShapedType>(op.getInput().getType());
+
+  if (inputType.getNumElements() == 0)
     return mlir::failure();
 
   // Match input as a constant
@@ -120,24 +84,38 @@ mlir::LogicalResult LinalgFoldConstantTranspose::matchAndRewrite(
   if (!matchPattern(op.getInput(), m_Constant(&inputValues)))
     return mlir::failure();
 
+  if (!mlir::isa<mlir::DenseResourceElementsAttr>(inputValues))
+    return mlir::failure();
+
   // Make sure the constant input has only this transpose op as a user.
-  // This avoids potentially duplicating large constants if the constant is used elsewhere.
+  // This avoids potentially duplicating large constants if the constant is used
+  // elsewhere.
   if (!llvm::hasSingleElement(op.getInput().getDefiningOp()->getUsers()))
     return mlir::failure();
 
   // Get permutation map
   auto permutations = op.getPermutation();
 
-  // Get input type
-  auto inputType = mlir::cast<mlir::ShapedType>(op.getInput().getType());
+  auto denseResource =
+      mlir::dyn_cast<mlir::DenseResourceElementsAttr>(inputValues);
+  // Check that the resource memory blob exists
+  auto handle = denseResource.getRawHandle();
+  mlir::AsmResourceBlob *blob = handle.getBlob();
+  if (!blob)
+    return mlir::failure();
+
+  // Check that the data are in a valid form
+  bool isSplat = false;
+  if (!mlir::DenseElementsAttr::isValidRawBuffer(inputType, blob->getData(),
+                                                 isSplat))
+    return mlir::failure();
+
+  auto data = blob->getDataAs<float>();
+  auto newBlobName = handle.getKey() + "_transposed";
 
   // Perform the transpose on the constant data
-  auto resultAttr = transpose(inputValues, inputType, outputType, permutations);
-  if (!resultAttr) {
-    // If transpose returns nullptr, it means the attribute type/element type wasn't supported
-    return rewriter.notifyMatchFailure(
-        op, "transpose utility failed (unsupported attribute or element type)");
-  }
+  auto resultAttr = transposeType(data, inputType, outputType, permutations,
+                                  newBlobName.str());
 
   // Replace the linalg.transpose op with the new constant
   rewriter.replaceOpWithNewOp<mlir::arith::ConstantOp>(op, outputType,
@@ -145,4 +123,4 @@ mlir::LogicalResult LinalgFoldConstantTranspose::matchAndRewrite(
   return mlir::success();
 }
 
-} // namespace nn_compiler 
+} // namespace nn_compiler

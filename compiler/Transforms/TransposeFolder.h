@@ -9,14 +9,14 @@
 namespace mlir {
 class ElementsAttr;
 class ShapedType;
-class DenseElementsAttr;
+class DenseResourceElementsAttr;
 class PatternRewriter;
 } // namespace mlir
 
 namespace nn_compiler {
 
 // Forward declaration
-mlir::DenseElementsAttr transpose(mlir::ElementsAttr attr,
+mlir::DenseResourceElementsAttr transpose(mlir::ElementsAttr attr,
                                   mlir::ShapedType inputType,
                                   mlir::ShapedType outputType,
                                   llvm::ArrayRef<int64_t> permValues);
