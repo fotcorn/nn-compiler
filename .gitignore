@@ -179,3 +179,4 @@ data/
 *.pth
 CMakeUserPresets.json
 compiler/build*/
+.vscode/
