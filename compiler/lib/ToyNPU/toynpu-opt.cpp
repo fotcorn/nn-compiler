@@ -4,11 +4,11 @@
 #include "mlir/Support/FileUtilities.h"
 #include "mlir/Tools/mlir-opt/MlirOptMain.h"
 
-#include "toynpu/Transforms/TransposeFolderPass.h"
+#include "ToyNPU/Passes.h"
 
 int main(int argc, char **argv) {
   mlir::registerAllPasses();
-  toynpu::registerTransposeFolderPass();
+  toynpu::registerPasses();
 
   mlir::DialectRegistry registry;
   registerAllDialects(registry);

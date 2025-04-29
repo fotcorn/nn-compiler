@@ -17,6 +17,7 @@ include(AddLLVM)
 include(AddMLIR)
 include(HandleLLVMOptions)
 
+
 get_property(dialect_libs GLOBAL PROPERTY MLIR_DIALECT_LIBS)
 get_property(conversion_libs GLOBAL PROPERTY MLIR_CONVERSION_LIBS)
 set(LIBS
@@ -30,12 +31,7 @@ include_directories(${LLVM_INCLUDE_DIRS})
 include_directories(${MLIR_INCLUDE_DIRS})
 include_directories(include)
 
-# Add simple-compiler executable
-add_llvm_executable(toynpu-opt
-    lib/Tools/toynpu-opt.cpp
-    lib/Transforms/TransposeFolder.cpp
-    lib/Transforms/TransposeFolderPass.cpp
-)
-llvm_update_compile_flags(toynpu-opt)
-target_link_libraries(toynpu-opt PRIVATE ${LIBS})
-mlir_check_all_link_libraries(toynpu-opt)
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/include)
+
+add_subdirectory(include)
+add_subdirectory(lib)
